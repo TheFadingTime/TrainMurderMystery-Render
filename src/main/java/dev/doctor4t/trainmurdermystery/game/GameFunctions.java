@@ -32,6 +32,8 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.TeleportTarget;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -236,10 +238,10 @@ public class GameFunctions {
         if (player instanceof ServerPlayerEntity serverPlayerEntity) serverPlayerEntity.changeGameMode(GameMode.SPECTATOR);
 
         if (spawnBody) {
-            PlayerBodyEntity body = TMMEntities.PLAYER_BODY.create(player.getWorld());
+            var body = TMMEntities.PLAYER_BODY.create(player.getWorld());
             body.setPlayerUuid(player.getUuid());
 
-            Vec3d spawnPos = player.getPos().add(player.getRotationVector().normalize().multiply(1));
+            var spawnPos = player.getPos().add(player.getRotationVector().normalize().multiply(1));
 
             body.refreshPositionAndAngles(spawnPos.getX(), player.getY(), spawnPos.getZ(), player.getHeadYaw(), 0f);
             body.setYaw(player.getHeadYaw());
@@ -247,8 +249,22 @@ public class GameFunctions {
             player.getWorld().spawnEntity(body);
         }
 
-        GameWorldComponent gameWorldComponent = TMMComponents.GAME.get(player.getWorld());
+        for (List<ItemStack> list : player.getInventory().combinedInventory) {
+            for (var i = 0; i < list.size(); i++) {
+                var stack = list.get(i);
+                if (shouldDropOnDeath(stack)) {
+                    player.dropItem(stack, true, false);
+                    list.set(i, ItemStack.EMPTY);
+                }
+            }
+        }
+
+        var gameWorldComponent = TMMComponents.GAME.get(player.getWorld());
         if (gameWorldComponent.isCivilian(player)) gameWorldComponent.decrementKillsLeft();
+    }
+
+    public static boolean shouldDropOnDeath(@NotNull ItemStack stack) {
+        return !stack.isEmpty() && stack.isOf(TMMItems.REVOLVER);
     }
 
     public static boolean isPlayerAliveAndSurvival(PlayerEntity player) {

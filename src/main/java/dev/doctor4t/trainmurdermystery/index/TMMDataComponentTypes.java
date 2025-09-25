@@ -7,22 +7,14 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.dynamic.Codecs;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
 
 public interface TMMDataComponentTypes {
-    ComponentType<Integer> BULLETS = register("bullets",
-            builder -> builder.codec(Codecs.NONNEGATIVE_INT).packetCodec(PacketCodecs.VAR_INT)
-    );
+    ComponentType<Boolean> POISONED = register("poisoned", booleanBuilder -> booleanBuilder.codec(Codec.BOOL).packetCodec(PacketCodecs.BOOL));
 
-    ComponentType<Boolean> POISONED = register("poisoned",
-            booleanBuilder -> booleanBuilder.codec(Codec.BOOL).packetCodec(PacketCodecs.BOOL)
-    );
-
-    static void initialize() {
-    }
-
-    private static <T> ComponentType<T> register(String name, UnaryOperator<ComponentType.Builder<T>> builderOperator) {
+    private static <T> ComponentType<T> register(String name, @NotNull UnaryOperator<ComponentType.Builder<T>> builderOperator) {
         return Registry.register(Registries.DATA_COMPONENT_TYPE, TMM.id(name), builderOperator.apply(ComponentType.builder()).build());
     }
 }

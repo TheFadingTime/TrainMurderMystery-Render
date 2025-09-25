@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.item.KnifeItem;
+import dev.doctor4t.trainmurdermystery.item.RevolverItem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CrosshairRenderer {
     private static final Identifier CROSSHAIR = TMM.id("hud/crosshair");
+    private static final Identifier CROSSHAIR_GUN = TMM.id("hud/crosshair_gun");
     private static final Identifier CROSSHAIR_ATTACK = TMM.id("hud/crosshair_attack");
     private static final Identifier CROSSHAIR_PROGRESS = TMM.id("hud/crosshair_progress");
     private static final Identifier CROSSHAIR_BACKGROUND = TMM.id("hud/crosshair_background");
@@ -27,7 +29,11 @@ public class CrosshairRenderer {
         context.getMatrices().translate(context.getScaledWindowWidth() / 2f, context.getScaledWindowHeight() / 2f, 0);
         context.getMatrices().push();
         context.getMatrices().translate(-1.5f, -1.5f, 0);
-        context.drawGuiTexture(CROSSHAIR, 0, 0, 3, 3);
+        if (player.getMainHandStack().isOf(TMMItems.REVOLVER) && !player.getItemCooldownManager().isCoolingDown(TMMItems.REVOLVER) && RevolverItem.getGunTarget(player) instanceof EntityHitResult) {
+            context.drawGuiTexture(CROSSHAIR_GUN, 0, 0, 3, 3);
+        } else {
+            context.drawGuiTexture(CROSSHAIR, 0, 0, 3, 3);
+        }
         context.getMatrices().pop();
         RenderSystem.defaultBlendFunc();
         RenderSystem.disableBlend();

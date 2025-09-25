@@ -1,31 +1,23 @@
 package dev.doctor4t.trainmurdermystery.item;
 
 import dev.doctor4t.trainmurdermystery.TMM;
-import dev.doctor4t.trainmurdermystery.block.SmallDoorBlock;
-import dev.doctor4t.trainmurdermystery.block.TrainDoorBlock;
-import dev.doctor4t.trainmurdermystery.block_entity.SmallDoorBlockEntity;
+import dev.doctor4t.trainmurdermystery.cca.PlayerMoodComponent;
+import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.client.particle.HandParticle;
 import dev.doctor4t.trainmurdermystery.client.render.TMMRenderLayers;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
-import dev.doctor4t.trainmurdermystery.index.TMMDataComponentTypes;
-import dev.doctor4t.trainmurdermystery.index.TMMSounds;
-import dev.doctor4t.trainmurdermystery.util.ShootMuzzleS2CPayload;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.enums.DoubleBlockHalf;
+import dev.doctor4t.trainmurdermystery.util.GunShootPayload;
+import dev.doctor4t.trainmurdermystery.util.KnifeStabPayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.*;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,78 +27,42 @@ public class RevolverItem extends Item {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        return shoot(world, user, hand);
-    }
-
-    private @NotNull TypedActionResult<ItemStack> shoot(World world, PlayerEntity user, Hand hand) {
-        ItemStack stackInHand = user.getStackInHand(hand);
-        Integer bullets = stackInHand.get(TMMDataComponentTypes.BULLETS);
-
-        if (bullets == null) {
-            bullets = 6;
-        }
-
-        if (!world.isClient) {
-            world.playSound(null, user.getX(), user.getEyeY(), user.getZ(), TMMSounds.ITEM_REVOLVER_CLICK, SoundCategory.PLAYERS, 0.5f, 1f + world.random.nextFloat() * .1f - .05f);
-            if (bullets > 0) {
-                if (user instanceof ServerPlayerEntity shooter) {
-                    for (ServerPlayerEntity tracking : PlayerLookup.tracking(shooter)) {
-                        ServerPlayNetworking.send(tracking, new ShootMuzzleS2CPayload(shooter.getUuidAsString()));
+    public TypedActionResult<ItemStack> use(@NotNull World world, @NotNull PlayerEntity user, Hand hand) {
+        if (world.isClient) {
+            var collision = getGunTarget(user);
+            if (collision instanceof EntityHitResult entityHitResult) {
+                var target = entityHitResult.getEntity();
+                ClientPlayNetworking.send(new GunShootPayload(target.getId()));
+                if (target instanceof PlayerEntity targetEntity) {
+                    var game = TMMComponents.GAME.get(user.getWorld());
+                    if (game.isCivilian(targetEntity) && game.isCivilian(user) && !user.isCreative()) {
+                        PlayerMoodComponent.KEY.get(user).setMood(0);
+                        user.dropItem(true);
                     }
-                    ServerPlayNetworking.send(shooter, new ShootMuzzleS2CPayload(shooter.getUuidAsString()));
                 }
-
-                world.playSound(null, user.getX(), user.getEyeY(), user.getZ(), TMMSounds.ITEM_REVOLVER_SHOOT, SoundCategory.PLAYERS, 5f, 1f + world.random.nextFloat() * .1f - .05f);
-                user.getItemCooldownManager().set(this, 20);
-                if (!user.isCreative()) stackInHand.set(TMMDataComponentTypes.BULLETS, bullets-1);
-
-                HitResult collision = ProjectileUtil.getCollision(user, entity -> entity.isAlive() && entity.isAttackable(), 20f);
-                if (collision instanceof EntityHitResult entityHitResult && entityHitResult.getEntity() instanceof PlayerEntity killedPlayer && GameFunctions.isPlayerAliveAndSurvival(killedPlayer)) {
-                    GameFunctions.killPlayer(killedPlayer, true);
-                }
-                return TypedActionResult.consume(user.getStackInHand(hand));
             } else {
-                return TypedActionResult.fail(user.getStackInHand(hand));
+                ClientPlayNetworking.send(new GunShootPayload(-1));
             }
-        } else {
-            if (bullets > 0) {
-                user.setPitch(user.getPitch() - 4);
-
-                HandParticle handParticle = new HandParticle()
-                        .setTexture(TMM.id("textures/particle/gunshot.png"))
-                        .setPos(0.1f, 0.275f, -0.2f)
-                        .setMaxAge(3)
-                        .setSize(0.5f)
-                        .setVelocity(0f, 0f, 0f)
-                        .setLight(15, 15)
-                        .setAlpha(1f, 0.1f)
-                        .setRenderLayer(TMMRenderLayers::additive);
-
-                TMMClient.handParticleManager.spawn(handParticle);
-
-                return TypedActionResult.consume(user.getStackInHand(hand));
-            } else {
-                return TypedActionResult.fail(user.getStackInHand(hand));
-            }
+            user.setPitch(user.getPitch() - 4);
+            spawnHandParticle();
         }
+        return TypedActionResult.consume(user.getStackInHand(hand));
     }
 
-    @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
-        PlayerEntity player = context.getPlayer();
-        World world = context.getWorld();
-        BlockPos pos = context.getBlockPos();
-        BlockState state = world.getBlockState(pos);
+    public static void spawnHandParticle() {
+        var handParticle = new HandParticle()
+                .setTexture(TMM.id("textures/particle/gunshot.png"))
+                .setPos(0.1f, 0.275f, -0.2f)
+                .setMaxAge(3)
+                .setSize(0.5f)
+                .setVelocity(0f, 0f, 0f)
+                .setLight(15, 15)
+                .setAlpha(1f, 0.1f)
+                .setRenderLayer(TMMRenderLayers::additive);
+        TMMClient.handParticleManager.spawn(handParticle);
+    }
 
-        TypedActionResult<ItemStack> shoot = shoot(world, player, context.getHand());
-
-        if (shoot.getResult() == ActionResult.CONSUME && state.getBlock() instanceof SmallDoorBlock && !(state.getBlock() instanceof TrainDoorBlock)) {
-            BlockPos lowerPos = state.get(SmallDoorBlock.HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
-            if (world.getBlockEntity(lowerPos) instanceof SmallDoorBlockEntity entity) {
-                entity.blast();
-            }
-        }
-        return shoot.getResult();
+    public static HitResult getGunTarget(PlayerEntity user) {
+        return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player), 64f);
     }
 }

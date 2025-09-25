@@ -23,6 +23,14 @@ public class KnifeItem extends Item {
     }
 
     @Override
+    public TypedActionResult<ItemStack> use(World world, @NotNull PlayerEntity user, Hand hand) {
+        var itemStack = user.getStackInHand(hand);
+        user.setCurrentHand(hand);
+        user.playSound(TMMSounds.ITEM_KNIFE_PREPARE, 1.0f, 1.0f);
+        return TypedActionResult.consume(itemStack);
+    }
+
+    @Override
     public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
         if (remainingUseTicks >= this.getMaxUseTime(stack, user) - 10 || !(user instanceof PlayerEntity attacker) || !world.isClient) return;
         var collision = getKnifeTarget(attacker);
@@ -34,14 +42,6 @@ public class KnifeItem extends Item {
 
     public static HitResult getKnifeTarget(PlayerEntity user) {
         return ProjectileUtil.getCollision(user, entity -> entity instanceof PlayerEntity player && GameFunctions.isPlayerAliveAndSurvival(player), 2f);
-    }
-
-    @Override
-    public TypedActionResult<ItemStack> use(World world, @NotNull PlayerEntity user, Hand hand) {
-        var itemStack = user.getStackInHand(hand);
-        user.setCurrentHand(hand);
-        user.playSound(TMMSounds.ITEM_KNIFE_PREPARE, 1.0f, 1.0f);
-        return TypedActionResult.consume(itemStack);
     }
 
     @Override

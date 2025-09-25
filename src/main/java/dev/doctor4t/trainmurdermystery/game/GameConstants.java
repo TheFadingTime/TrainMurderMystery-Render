@@ -22,6 +22,7 @@ public interface GameConstants {
 
     // Items
     int KNIFE_COOLDOWN = getInTicks(1, 0);
+    int REVOLVER_COOLDOWN = getInTicks(0, 1);
     int JAMMED_DOOR_TIME = getInTicks(1, 0);
     int LOCKPICK_JAM_COOLDOWN = getInTicks(2, 0);
 

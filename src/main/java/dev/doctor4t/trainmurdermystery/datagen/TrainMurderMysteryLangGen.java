@@ -66,9 +66,8 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
         builder.add("tip.knife.tooltip3", "Attack to knock back / push a player (no cooldown)");
         builder.add("tip.lockpick.tooltip1", "Use on any locked door to open it (no cooldown)");
         builder.add("tip.lockpick.tooltip2", "Sneak-use on a door to jam it for 1 minute (disables the lockpick for 5 minutes)");
-        builder.add("tip.revolver.rounds", "%s/6 rounds left");
         builder.add("tip.revolver.tooltip1", "Right-click to use, point and shoot");
-        builder.add("tip.revolver.tooltip2", "Can be used to shoot a door and open it permanently (only glass and wooden doors)");
+        builder.add("tip.revolver.tooltip2", "Drops if you kill an innocent");
         builder.add("tip.body_bag.tooltip1", "Use on a dead body to bag it up and remove it");
         builder.add("tip.blackout.tooltip1", "Trigger a blackout");
         builder.add("tip.blackout.tooltip2", "Activated instantly on purchase");

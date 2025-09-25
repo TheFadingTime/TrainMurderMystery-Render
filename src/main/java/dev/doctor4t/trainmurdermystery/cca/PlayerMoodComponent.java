@@ -68,7 +68,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
                 this.timesGotten.put(task.getType(), this.timesGotten.get(task.getType()) + 1);
             }
             this.nextTaskTimer = (int) (this.player.getRandom().nextFloat() * (GameConstants.MAX_TASK_COOLDOWN - GameConstants.MIN_TASK_COOLDOWN) + GameConstants.MIN_TASK_COOLDOWN);
-            this.nextTaskTimer = Math.max(this.nextTaskTimer / 10, 2);
+            this.nextTaskTimer = Math.max(this.nextTaskTimer, 2);
             shouldSync = true;
         }
         var removals = new ArrayList<Task>();
