@@ -1,0 +1,51 @@
+{
+  "minecraft:recipes/decorations/crafting_table": {
+    "criteria": {
+      "unlock_right_away": "2025-10-04 16:02:55 +0000"
+    },
+    "done": true
+  },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:plains": "2025-10-04 16:02:56 +0000"
+    },
+    "done": false
+  },
+  "minecraft:husbandry/root": {
+    "criteria": {
+      "consumed_item": "2025-10-04 16:47:54 +0000"
+    },
+    "done": true
+  },
+  "minecraft:husbandry/balanced_diet": {
+    "criteria": {
+      "apple": "2025-10-04 16:54:47 +0000",
+      "cooked_rabbit": "2025-10-07 18:16:43 +0000",
+      "sweet_berries": "2025-10-04 16:52:44 +0000",
+      "cooked_beef": "2025-10-04 17:02:19 +0000",
+      "cooked_salmon": "2025-10-04 17:41:37 +0000",
+      "pumpkin_pie": "2025-10-07 17:22:43 +0000",
+      "golden_carrot": "2025-10-04 16:58:06 +0000"
+    },
+    "done": false
+  },
+  "minecraft:adventure/sleep_in_bed": {
+    "criteria": {
+      "slept_in_bed": "2025-10-04 16:59:23 +0000"
+    },
+    "done": true
+  },
+  "minecraft:recipes/food/rabbit_stew_from_brown_mushroom": {
+    "criteria": {
+      "has_cooked_rabbit": "2025-10-04 17:22:08 +0000"
+    },
+    "done": true
+  },
+  "minecraft:recipes/food/rabbit_stew_from_red_mushroom": {
+    "criteria": {
+      "has_cooked_rabbit": "2025-10-04 17:22:08 +0000"
+    },
+    "done": true
+  },
+  "DataVersion": 3955
+}
